@@ -4,31 +4,109 @@
   <meta charset="utf-8">
   <title>{% block title %}防災アプリ{% endblock %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --blue: #2859a8;
+      --blue-dark: #214b90;
+      --ink: #234f98;
+      --muted: #6c7787;
+      --line: #edf0f5;
+      --surface: #ffffff;
+      --page: #f7f9fc;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: #26384f;
+      background: radial-gradient(circle at 50% 15%, #ffffff 0, var(--page) 72%);
+      font-family: "Noto Sans JP", "Yu Gothic", sans-serif;
+    }
+
+    .site-header {
+      height: 54px;
+      background: linear-gradient(115deg, var(--blue-dark), #3266b8);
+      box-shadow: 0 2px 8px rgba(29, 67, 128, 0.18);
+    }
+
+    .header-inner {
+      width: min(100% - 40px, 1080px);
+      height: 100%;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      color: #fff;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-decoration: none;
+    }
+
+    .menu-button {
+      border: 0;
+      padding: 6px;
+      color: #fff;
+      background: transparent;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .site-nav {
+      display: none;
+      position: absolute;
+      z-index: 1000;
+      top: 54px;
+      right: 20px;
+      padding: 12px 18px;
+      background: #fff;
+      border: 1px solid var(--line);
+      box-shadow: 0 8px 24px rgba(25, 52, 92, 0.16);
+    }
+
+    .site-nav.is-open { display: grid; gap: 10px; }
+    .site-nav a { color: var(--blue-dark); text-decoration: none; }
+    .site-nav a:hover { text-decoration: underline; }
+
+    main { min-height: calc(100vh - 54px); }
+  </style>
 </head>
 <body>
-  <!-- ヘッダー -->
-  <h1>防災アプリ</h1>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/">防災アプリ</a>
+      <button class="menu-button" type="button" aria-label="メニューを開く" aria-expanded="false">☰</button>
+    </div>
+  </header>
 
-  <!-- ナビゲーション -->
-  <nav>
-    <a href="/">ホーム</a> |
-    <a href="/shelter_search">避難所検索</a> |
-    <a href="/shelter_register">避難所登録</a> |
+  <nav class="site-nav" aria-label="メインメニュー">
+    <a href="/">ホーム</a>
+    <a href="/shelter_search">避難所検索</a>
+    <a href="/shelter_register">避難所登録</a>
     <a href="/board">指示・発信ボード</a>
-    ｜
     {% if session.logged_in %}
-      ログイン中{% if session.username %}（{{ session.username }}）{% endif %}
+      <span>ログイン中{% if session.username %}（{{ session.username }}）{% endif %}</span>
       <a href="/logout">ログアウト</a>
     {% else %}
-      未ログイン
       <a href="/login">ログイン</a>
     {% endif %}
   </nav>
-  <hr>
 
   <main>
-    <!-- ここに子テンプレートの content が入る -->
     {% block content %}{% endblock %}
   </main>
+  <script>
+    const menuButton = document.querySelector('.menu-button');
+    const siteNav = document.querySelector('.site-nav');
+    menuButton.addEventListener('click', () => {
+      const isOpen = siteNav.classList.toggle('is-open');
+      menuButton.setAttribute('aria-expanded', isOpen);
+    });
+  </script>
 </body>
 </html>

@@ -28,8 +28,8 @@ ADMIN_CREDENTIALS = {
 PREFECTURE_CODE = "020000"  # 青森県
 AREA_NAME = "青森市"
 
-# ワークショップ課題：青森市の市区町村コードに変更する
-AREA_CODE = "1420500"
+# 気象庁防災情報XML・JSONの青森市（市町村）のコード
+AREA_CODE = "0220100"
 
 WARNING_URL = (
     f"https://www.jma.go.jp/bosai/warning/data/r8/{PREFECTURE_CODE}.json"
@@ -101,6 +101,11 @@ def save_instructions():
             json.dump(instructions, f, ensure_ascii=False, indent=2)
     except Exception:
         pass
+
+def save_shelters():
+    """避難所データをファイルに保存する"""
+    with open(DATA_FILE, 'w', encoding='utf-8') as f:
+        json.dump(shelters, f, ensure_ascii=False, indent=2)
 # ────────────────────────────────
 
 # ────────────────────────────────
@@ -142,6 +147,25 @@ def format_report_time(iso_str):
 def filter_shelters(district=None):
     """district 指定があれば一致する避難所のみ、なければ全件を返す"""
     return [s for s in shelters if not district or s.get('district') == district]
+
+HISTORY_PER_PAGE = 10
+
+def get_history_page(page=1):
+    """発信日時の新しい順に履歴を10件ずつ返す"""
+    def history_datetime(instruction):
+        timestamp = instruction.get('created_at') or instruction.get('updated_at') or ''
+        for date_format in ('%Y年%m月%d日 %H:%M', '%Y-%m-%dT%H:%M:%S%z'):
+            try:
+                return datetime.strptime(timestamp, date_format)
+            except (TypeError, ValueError):
+                continue
+        return datetime.min
+
+    ordered = sorted(instructions, key=history_datetime, reverse=True)
+    total_pages = max(1, (len(ordered) + HISTORY_PER_PAGE - 1) // HISTORY_PER_PAGE)
+    page = max(1, min(page, total_pages))
+    start = (page - 1) * HISTORY_PER_PAGE
+    return ordered[start:start + HISTORY_PER_PAGE], page, total_pages
 
 
 def parse_area_warnings(warning_data):
@@ -278,9 +302,27 @@ def logout():
     return redirect(url_for('index'))
 
 # 避難所登録ページ※user が避難所登録ページについて具体的に修正指示しない限り、このコードは正しいのでこのまま保持すること。
-@app.route('/shelter_register')
+@app.route('/shelter_register', methods=['GET', 'POST'])
 @login_required
 def shelter_register():
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        if not name:
+            return render_template(
+                'shelter_register.html',
+                error=True,
+                message='避難所名を入力してください'
+            )
+
+        next_id = max((shelter.get('id', 0) for shelter in shelters), default=0) + 1
+        shelters.append({'id': next_id, 'name': name})
+        save_shelters()
+        return render_template(
+            'shelter_register.html',
+            success=True,
+            message='登録しました'
+        )
+
     return render_template('shelter_register.html')
 
 # 避難所検索ページ
@@ -295,11 +337,134 @@ def all_shelters():
 
 
 # 指示ボード：住民向けの指示を一覧で確認する
-@app.route('/board')
+@app.route('/board', methods=['GET', 'POST'])
 @login_required
 def board():
-    resident_instructions = [i for i in instructions if i.get('target') == '住民']
-    return render_template('board.html', instructions=resident_instructions)
+    form_data = {}
+
+    if request.method == 'POST':
+        region = request.form.get('region', '').strip()
+        target = request.form.get('target', '').strip()
+        danger = request.form.get('danger', '').strip()
+        urgency = request.form.get('urgency', '').strip()
+        content = request.form.get('content', '').strip()
+        template = request.form.get('template', '').strip()
+        form_data = {
+            'region': region,
+            'target': target,
+            'danger': danger,
+            'urgency': urgency,
+            'content': content,
+            'template': template,
+            'instruction_id': request.form.get('instruction_id', '').strip()
+        }
+        missing = []
+
+        if not region:
+            missing.append('地域')
+        if not target:
+            missing.append('対象者')
+        if not danger:
+            missing.append('危険度')
+        if not urgency:
+            missing.append('緊急度')
+        if not content:
+            missing.append('発信内容')
+
+        if missing:
+            history_entries, current_page, total_pages = get_history_page()
+            return render_template(
+                'board.html',
+                instructions=instructions,
+                history_entries=history_entries,
+                current_page=current_page,
+                total_pages=total_pages,
+                form_data=form_data,
+                error_message=f"次の必須項目を入力してください: {'、'.join(missing)}"
+            )
+
+        action = request.form.get('action')
+        status = '下書き' if action == 'draft' else '発信済み'
+        now = get_japan_time()
+        instruction_id = request.form.get('instruction_id', '').strip()
+        draft = next(
+            (instruction for instruction in instructions
+             if str(instruction.get('id')) == instruction_id
+             and instruction.get('status') == '下書き'),
+            None
+        )
+        saved_id = None
+        if draft:
+            saved_id = draft['id']
+            draft.update({
+                'region': region,
+                'target': target,
+                'danger': danger,
+                'urgency': urgency,
+                'template': template,
+                'content': content,
+                'status': status,
+                'updated_at': now
+            })
+        else:
+            next_id = max((instruction.get('id', 0) for instruction in instructions), default=0) + 1
+            saved_id = next_id
+            instructions.append({
+                'id': next_id,
+                'region': region,
+                'target': target,
+                'danger': danger,
+                'urgency': urgency,
+                'template': template,
+                'content': content,
+                'shelter': '',
+                'status': status,
+                'created_at': now,
+                'updated_at': now
+            })
+        save_instructions()
+        redirect_args = {'notice': 'draft' if status == '下書き' else 'published'}
+        if status == '下書き':
+            redirect_args['edit_id'] = saved_id
+        return redirect(url_for('board', **redirect_args))
+
+    instruction_id = request.args.get('edit_id', '').strip()
+    page = request.args.get('page', 1, type=int)
+    history_entries, current_page, total_pages = get_history_page(page)
+    notice_messages = {
+        'draft': '下書きを保存しました',
+        'published': '発信しました'
+    }
+    success_message = notice_messages.get(request.args.get('notice'))
+    if instruction_id:
+        draft = next(
+            (instruction for instruction in instructions
+             if str(instruction.get('id')) == instruction_id
+             and instruction.get('status') == '下書き'),
+            None
+        )
+        if draft:
+            form_data = {
+                'region': draft.get('region', ''),
+                'target': draft.get('target', ''),
+                'danger': draft.get('danger', ''),
+                'urgency': draft.get('urgency', ''),
+                'template': draft.get('template', ''),
+                'content': draft.get('content', ''),
+                'instruction_id': str(draft.get('id'))
+            }
+        else:
+            form_data = {'error': '編集できる下書きが見つかりません。'}
+
+    return render_template(
+        'board.html',
+        instructions=instructions,
+        history_entries=history_entries,
+        current_page=current_page,
+        total_pages=total_pages,
+        form_data=form_data,
+        success_message=success_message
+    )
 
 # 検索結果ページ：templates/search_results.html を返す
 @app.route('/search_results')

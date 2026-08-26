@@ -3,23 +3,294 @@
 {% block title %}指示・発信ボード - 防災アプリ{% endblock %}
 
 {% block content %}
-<h2>発信ボード</h2>
-<p>住民向けの発信を登録・確認できます。</p>
+<style>
+  .board-page {
+    width: min(100% - 32px, 1140px);
+    margin: 34px auto 56px;
+    color: #293b52;
+  }
 
-<!-- 発信一覧 -->
-<h3>発信一覧</h3>
-{% if instructions %}
-<table border="1" cellpadding="5">
-  <tr>
-    <th>内容</th>
-  </tr>
-  {% for inst in instructions %}
-  <tr>
-    <td>{{ inst.content }}{% if inst.shelter %}（避難先: {{ inst.shelter }}）{% endif %}</td>
-  </tr>
-  {% endfor %}
-</table>
-{% else %}
-<p>登録されている指示はありません。</p>
-{% endif %}
+  .board-title {
+    margin: 0 0 6px;
+    color: #234f98;
+    font-size: 27px;
+    font-weight: 700;
+  }
+
+  .board-lead { margin: 0 0 24px; color: #68778a; font-size: 13px; }
+  .board-title-icon { margin-right: 8px; font-size: 24px; }
+  .board-message { margin: 0 0 16px; padding: 11px 14px; border-radius: 5px; font-size: 13px; font-weight: 700; }
+  .board-message.error { color: #b52e2e; background: #fff0f0; border: 1px solid #ffc5c5; }
+  .board-message.success { color: #167a40; background: #eaf8ef; border: 1px solid #b9e5c8; }
+
+  .board-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .board-panel {
+    min-width: 0;
+    padding: 22px;
+    background: #fff;
+    border: 1px solid #e9edf3;
+    border-radius: 9px;
+    box-shadow: 0 4px 14px rgba(31, 65, 111, 0.08);
+  }
+
+  .panel-title {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 0 0 20px;
+    color: #24559f;
+    font-size: 17px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 17px 20px;
+  }
+
+  .field label {
+    display: block;
+    margin-bottom: 6px;
+    color: #43536a;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .field select,
+  .field textarea {
+    width: 100%;
+    padding: 9px 11px;
+    color: #35465c;
+    background: #fff;
+    border: 1px solid #cbd3df;
+    border-radius: 5px;
+    font: inherit;
+    font-size: 13px;
+  }
+
+  .field select { height: 36px; }
+  .field textarea { height: 102px; resize: vertical; line-height: 1.65; }
+  .field-wide { grid-column: 1 / -1; }
+
+  .choice-row { display: flex; align-items: center; gap: 7px; min-height: 36px; flex-wrap: wrap; }
+  .choice-row label { display: inline-flex; align-items: center; gap: 5px; margin: 0; padding: 5px 8px; border: 1px solid transparent; border-radius: 5px; font-weight: 700; }
+  .choice-row label:has(input:checked) { background: #f2f6fc; border-color: #c7d8ef; }
+  .choice-row input { accent-color: #f0a324; }
+  .choice-row label:has(input[value="高"]) { color: #d34a45; }
+  .choice-row label:has(input[value="中"]) { color: #b87808; }
+  .choice-row label:has(input[value="低"]) { color: #23834e; }
+  .choice-row label:has(input[value="緊急"]) { color: #c62e3d; }
+
+  .form-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px; }
+  .form-button {
+    min-width: 138px;
+    padding: 9px 16px;
+    border: 1px solid #2c66bd;
+    border-radius: 5px;
+    color: #fff;
+    background: #2864b9;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(40, 100, 185, 0.2);
+  }
+  .form-button.secondary { color: #2864b9; background: #fff; }
+  .form-button:hover { background: #214f99; }
+  .form-button.secondary:hover { background: #f1f6ff; }
+  .form-button:not(.secondary) { min-width: 160px; background: linear-gradient(135deg, #2458a4, #3173ca); }
+
+  .preview-box {
+    min-height: 314px;
+    padding: 15px;
+    border: 1px solid #ff9d9d;
+    border-radius: 6px;
+    background: #fff;
+  }
+  .preview-alert {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: -15px -15px 15px;
+    padding: 11px 14px;
+    color: #d73535;
+    background: #ffe7e7;
+    border-bottom: 1px solid #ffcaca;
+    font-weight: 700;
+  }
+  .preview-meta { display: flex; justify-content: space-between; margin-bottom: 13px; color: #758194; font-size: 11px; }
+  .preview-content { padding-bottom: 10px; border-bottom: 1px solid #e4e8ee; }
+  .preview-content h4 { margin: 0 0 12px; color: #26384e; font-size: 15px; }
+  .preview-content p { margin: 0; min-height: 96px; color: #47566a; font-size: 12px; line-height: 1.8; white-space: pre-wrap; }
+  .preview-tags { display: flex; gap: 8px; margin-top: 12px; font-size: 11px; font-weight: 700; flex-wrap: wrap; }
+  .preview-tag { padding: 4px 10px; background: #fff4dc; border: 1px solid #ffc667; border-radius: 4px; }
+  .preview-tag.urgency { color: #c62e3d; background: #fff0f1; border-color: #ffb6bd; }
+  .preview-note { margin: 14px 0 0; padding: 9px; color: #4274bc; background: #eaf2ff; border-radius: 5px; font-size: 11px; }
+
+  .history-panel { padding: 18px 10px 12px; }
+  .history-panel .panel-title { padding: 0 10px; margin-bottom: 14px; }
+  .history-wrap { overflow-x: auto; }
+  .history-table { width: 100%; min-width: 900px; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
+  .history-table col.date { width: 132px; }
+  .history-table col.region { width: 130px; }
+  .history-table col.target { width: 112px; }
+  .history-table col.level { width: 76px; }
+  .history-table col.content { width: auto; }
+  .history-table col.status { width: 104px; }
+  .history-table th { padding: 10px 9px; color: #41536b; background: #f1f3f7; text-align: left; white-space: nowrap; }
+  .history-table td { padding: 9px; border-bottom: 1px solid #e9edf2; vertical-align: middle; }
+  .history-table tbody tr:hover { background: #fafcff; }
+  .history-table .content-cell { overflow-wrap: anywhere; line-height: 1.55; }
+  .level-badge { display: inline-block; min-width: 38px; padding: 3px 7px; border: 1px solid; border-radius: 4px; text-align: center; font-weight: 700; }
+  .level-high { color: #cf4545; background: #fff0f0; border-color: #ffaaa9; }
+  .level-medium { color: #a86e00; background: #fff7df; border-color: #ffd276; }
+  .level-low { color: #21864d; background: #ebf8ef; border-color: #a8ddb9; }
+  .level-urgent { color: #c52c3b; background: #ffeaec; border-color: #ff9ca6; }
+  .status { display: inline-block; padding: 4px 9px; color: #168b46; background: #e5f7eb; border: 1px solid #a9ddb9; border-radius: 12px; white-space: nowrap; font-weight: 700; }
+  .status-draft { color: #936100; background: #fff5dc; border-color: #f1ce7e; }
+  .edit-button { display: inline-block; margin-left: 6px; padding: 3px 8px; color: #245ca8; background: #fff; border: 1px solid #9dbce5; border-radius: 4px; font-size: 11px; font-weight: 700; text-decoration: none; }
+  .edit-button:hover { background: #eef5ff; }
+  .pagination { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 16px; }
+  .pagination a, .pagination span { display: inline-flex; align-items: center; justify-content: center; min-width: 31px; height: 31px; padding: 0 8px; color: #245ca8; border: 1px solid #cbd8e9; border-radius: 5px; font-size: 12px; font-weight: 700; text-decoration: none; }
+  .pagination a:hover { background: #eef5ff; }
+  .pagination .current { color: #fff; background: #2864b9; border-color: #2864b9; }
+  .pagination .disabled { color: #aab5c4; background: #f7f9fc; border-color: #e3e8ef; }
+  .empty-history { padding: 18px 10px; color: #718096; }
+
+  @media (max-width: 800px) {
+    .board-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 520px) {
+    .board-page { width: min(100% - 20px, 1140px); margin-top: 20px; }
+    .board-title { font-size: 23px; }
+    .board-panel { padding: 15px; }
+    .form-grid { grid-template-columns: 1fr; gap: 12px; }
+    .field-wide { grid-column: auto; }
+    .form-actions { flex-direction: column; }
+    .form-button { width: 100%; }
+    .preview-meta { gap: 8px; flex-wrap: wrap; }
+  }
+</style>
+
+<div class="board-page">
+  <h2 class="board-title"><span class="board-title-icon">📣</span>指示・発信ボード</h2>
+  <p class="board-lead">避難所利用者や地域住民への指示・お知らせを作成・発信します。</p>
+  {% if error_message %}<p class="board-message error" role="alert">{{ error_message }}</p>{% endif %}
+  {% if success_message %}<p class="board-message success" role="status">{{ success_message }}</p>{% endif %}
+  {% if form_data.error %}<p class="board-message error" role="alert">{{ form_data.error }}</p>{% endif %}
+
+  <div class="board-grid">
+    <section class="board-panel" aria-labelledby="create-title">
+      <h3 id="create-title" class="panel-title">🖉 発信内容の作成</h3>
+      <form id="broadcastForm" method="post">
+        <input type="hidden" name="instruction_id" value="{{ form_data.instruction_id or '' }}">
+        <div class="form-grid">
+          <div class="field">
+            <label for="region">地域を選択</label>
+            <select id="region" name="region"><option value="青森市 全域" {% if form_data.region == '青森市 全域' or not form_data.region %}selected{% endif %}>青森市 全域</option><option value="青森市 浪岡地区" {% if form_data.region == '青森市 浪岡地区' %}selected{% endif %}>青森市 浪岡地区</option><option value="青森市 油川地区" {% if form_data.region == '青森市 油川地区' %}selected{% endif %}>青森市 油川地区</option></select>
+          </div>
+          <div class="field">
+            <label for="audience">対象者を選択</label>
+            <select id="audience" name="target"><option value="避難所利用者" {% if form_data.target == '避難所利用者' or not form_data.target %}selected{% endif %}>避難所利用者</option><option value="地域住民" {% if form_data.target == '地域住民' %}selected{% endif %}>地域住民</option><option value="高齢者の方" {% if form_data.target == '高齢者の方' %}selected{% endif %}>高齢者の方</option></select>
+          </div>
+          <div class="field">
+            <label>危険度</label>
+            <div class="choice-row"><label><input type="radio" name="danger" value="高" {% if form_data.danger == '高' %}checked{% endif %}> 高</label><label><input type="radio" name="danger" value="中" {% if form_data.danger == '中' or not form_data.danger %}checked{% endif %}> 中</label><label><input type="radio" name="danger" value="低" {% if form_data.danger == '低' %}checked{% endif %}> 低</label></div>
+          </div>
+          <div class="field">
+            <label>緊急度</label>
+            <div class="choice-row"><label><input type="radio" name="urgency" value="緊急" {% if form_data.urgency == '緊急' %}checked{% endif %}> 緊急</label><label><input type="radio" name="urgency" value="高" {% if form_data.urgency == '高' or not form_data.urgency %}checked{% endif %}> 高</label><label><input type="radio" name="urgency" value="中" {% if form_data.urgency == '中' %}checked{% endif %}> 中</label><label><input type="radio" name="urgency" value="低" {% if form_data.urgency == '低' %}checked{% endif %}> 低</label></div>
+          </div>
+          <div class="field field-wide">
+            <label for="template">定型文を選択</label>
+            <select id="template">
+              <option value="">定型文を選択してください</option>
+              <option value="evacuation" {% if form_data.template == 'evacuation' %}selected{% endif %}>避難指示</option>
+              <option value="rain-flood" {% if form_data.template == 'rain-flood' %}selected{% endif %}>大雨・洪水</option>
+              <option value="landslide" {% if form_data.template == 'landslide' %}selected{% endif %}>土砂災害</option>
+              <option value="shelter-open" {% if form_data.template == 'shelter-open' %}selected{% endif %}>避難所開設</option>
+              <option value="shelter-crowded" {% if form_data.template == 'shelter-crowded' %}selected{% endif %}>避難所混雑</option>
+              <option value="other" {% if form_data.template == 'other' %}selected{% endif %}>その他</option>
+            </select>
+          </div>
+          <div class="field field-wide">
+            <label for="content">発信内容</label>
+            <textarea id="content" name="content" placeholder="発信内容を入力してください">{{ form_data.content or '' }}</textarea>
+          </div>
+        </div>
+        <div class="form-actions"><button class="form-button secondary" type="submit" name="action" value="draft">▣ 下書き保存</button><button class="form-button" type="submit" name="action" value="publish">➤ 発信する</button></div>
+      </form>
+    </section>
+
+    <section class="board-panel" aria-labelledby="preview-title">
+      <h3 id="preview-title" class="panel-title">◉ プレビュー</h3>
+      <div class="preview-box">
+        <div class="preview-alert">⚠ 重要なお知らせ</div>
+        <div class="preview-meta"><span>⌖ <span id="previewRegion">青森市 全域</span></span><span>発信日時：現在</span></div>
+        <div class="preview-content"><h4 id="previewHeading">【お知らせ】</h4><p id="previewBody">発信内容を入力すると、ここにプレビューが表示されます。</p><div class="preview-tags"><span class="preview-tag">対象者　<span id="previewAudience">避難所利用者</span></span><span class="preview-tag">危険度　<span id="previewDanger">中</span></span><span class="preview-tag urgency">緊急度　<span id="previewUrgency">高</span></span></div></div>
+        <p class="preview-note">ⓘ この内容は住民の方へ上記の形式で表示されます。</p>
+      </div>
+    </section>
+  </div>
+
+  <section class="board-panel history-panel" aria-labelledby="history-title">
+    <h3 id="history-title" class="panel-title">▣ 発信履歴</h3>
+    {% if total_pages > 1 %}
+    <nav class="pagination" aria-label="発信履歴のページ移動">
+      {% if current_page > 1 %}<a href="{{ url_for('board', page=current_page - 1) }}">前へ</a>{% else %}<span class="disabled">前へ</span>{% endif %}
+      {% for page_number in range(1, total_pages + 1) %}{% if page_number == current_page %}<span class="current" aria-current="page">{{ page_number }}</span>{% else %}<a href="{{ url_for('board', page=page_number) }}">{{ page_number }}</a>{% endif %}{% endfor %}
+      {% if current_page < total_pages %}<a href="{{ url_for('board', page=current_page + 1) }}">後へ</a>{% else %}<span class="disabled">後へ</span>{% endif %}
+    </nav>
+    {% endif %}
+    {% if history_entries %}
+    <div class="history-wrap"><table class="history-table"><colgroup><col class="date"><col class="region"><col class="target"><col class="level"><col class="level"><col class="content"><col class="status"></colgroup><thead><tr><th>日時</th><th>地域</th><th>対象者</th><th>危険度</th><th>緊急度</th><th>内容</th><th>状態</th></tr></thead><tbody>
+      {% for inst in history_entries %}<tr><td>{{ inst.created_at or inst.updated_at or '日時未設定' }}</td><td>{{ inst.region or '青森市 全域' }}</td><td>{{ inst.target or '未設定' }}</td><td><span class="level-badge {% if inst.danger == '高' %}level-high{% elif inst.danger == '低' %}level-low{% else %}level-medium{% endif %}">{{ inst.danger or '未設定' }}</span></td><td><span class="level-badge {% if inst.urgency == '緊急' %}level-urgent{% elif inst.urgency == '高' %}level-high{% elif inst.urgency == '低' %}level-low{% else %}level-medium{% endif %}">{{ inst.urgency or '未設定' }}</span></td><td class="content-cell" title="{{ inst.content }}">{{ inst.content }}{% if inst.shelter %}（避難先: {{ inst.shelter }}）{% endif %}</td><td><span class="status {% if inst.status == '下書き' %}status-draft{% endif %}">● {{ inst.status or '発信済み' }}</span>{% if inst.status == '下書き' %}<a class="edit-button" href="{{ url_for('board', edit_id=inst.id) }}">編集</a>{% endif %}</td></tr>{% endfor %}
+    </tbody></table></div>
+    {% else %}<p class="empty-history">登録されている発信履歴はありません。</p>{% endif %}
+  </section>
+</div>
+
+<script>
+  const broadcastForm = document.getElementById('broadcastForm');
+  const templateField = document.getElementById('template');
+  const contentField = document.getElementById('content');
+  const regionField = document.getElementById('region');
+  const previewBody = document.getElementById('previewBody');
+  const previewRegion = document.getElementById('previewRegion');
+  const previewAudience = document.getElementById('previewAudience');
+  const previewDanger = document.getElementById('previewDanger');
+  const previewUrgency = document.getElementById('previewUrgency');
+  const values = { 高: '高', 中: '中', 低: '低', 緊急: '緊急' };
+  const templateExamples = {
+    evacuation: '【避難指示】\n青森市内の対象地域では、危険な場所から直ちに避難してください。\n避難の際は周囲の状況に注意し、安全な経路で行動してください。',
+    'rain-flood': '【大雨・洪水】\n青森市内では大雨により河川の増水や浸水が発生するおそれがあります。\n最新の気象情報を確認し、危険を感じた場合は早めに避難してください。',
+    landslide: '【土砂災害】\n青森市内では土砂災害が発生するおそれがあります。\n崖や斜面、川の近くには近づかず、安全な場所へ避難してください。',
+    'shelter-open': '【避難所開設】\n青森市内に避難所を開設しました。\n避難する際は必要なものを持参し、周囲の状況に注意してお越しください。',
+    'shelter-crowded': '【避難所混雑】\n青森市内の避難所が混雑しています。\n可能な場合は別の避難所もご検討いただき、係員の案内に従ってください。'
+  };
+
+  function updatePreview() {
+    previewBody.textContent = contentField.value || '発信内容を入力すると、ここにプレビューが表示されます。';
+    previewRegion.textContent = regionField.value;
+    previewAudience.textContent = document.getElementById('audience').value;
+    previewDanger.textContent = values[document.querySelector('input[name="danger"]:checked').value];
+    previewUrgency.textContent = values[document.querySelector('input[name="urgency"]:checked').value];
+  }
+
+  contentField.addEventListener('input', updatePreview);
+  regionField.addEventListener('change', updatePreview);
+  document.getElementById('audience').addEventListener('change', updatePreview);
+  document.querySelectorAll('input[type="radio"]').forEach((radio) => radio.addEventListener('change', updatePreview));
+  templateField.addEventListener('change', () => {
+    contentField.value = templateExamples[templateField.value] || '';
+    contentField.focus();
+    updatePreview();
+  });
+  updatePreview();
+</script>
 {% endblock %}

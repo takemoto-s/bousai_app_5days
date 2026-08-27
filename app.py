@@ -341,10 +341,15 @@ def all_shelters():
 @login_required
 def board():
     form_data = {}
+    details_entry = None
 
     if request.method == 'POST':
-        region = request.form.get('region', '').strip()
-        target = request.form.get('target', '').strip()
+        region_choice = request.form.get('region_choice', request.form.get('region', '')).strip()
+        target_choice = request.form.get('target_choice', request.form.get('target', '')).strip()
+        region_custom = request.form.get('region_custom', '').strip()
+        target_custom = request.form.get('target_custom', '').strip()
+        region = region_custom if region_choice == 'その他' else region_choice
+        target = target_custom if target_choice == 'その他' else target_choice
         danger = request.form.get('danger', '').strip()
         urgency = request.form.get('urgency', '').strip()
         content = request.form.get('content', '').strip()
@@ -352,6 +357,10 @@ def board():
         form_data = {
             'region': region,
             'target': target,
+            'region_choice': region_choice,
+            'target_choice': target_choice,
+            'region_custom': region_custom,
+            'target_custom': target_custom,
             'danger': danger,
             'urgency': urgency,
             'content': content,
@@ -406,6 +415,8 @@ def board():
                 'status': status,
                 'updated_at': now
             })
+            if status == '発信済み':
+                draft['created_at'] = now
         else:
             next_id = max((instruction.get('id', 0) for instruction in instructions), default=0) + 1
             saved_id = next_id
@@ -429,6 +440,7 @@ def board():
         return redirect(url_for('board', **redirect_args))
 
     instruction_id = request.args.get('edit_id', '').strip()
+    details_id = request.args.get('details_id', '').strip()
     page = request.args.get('page', 1, type=int)
     history_entries, current_page, total_pages = get_history_page(page)
     notice_messages = {
@@ -447,6 +459,10 @@ def board():
             form_data = {
                 'region': draft.get('region', ''),
                 'target': draft.get('target', ''),
+                'region_choice': draft.get('region', '') if draft.get('region', '') in ('青森市 全域', '青森市 浪岡地区', '青森市 油川地区') else 'その他',
+                'target_choice': draft.get('target', '') if draft.get('target', '') in ('避難所利用者', '地域住民', '高齢者の方') else 'その他',
+                'region_custom': draft.get('region', '') if draft.get('region', '') not in ('青森市 全域', '青森市 浪岡地区', '青森市 油川地区') else '',
+                'target_custom': draft.get('target', '') if draft.get('target', '') not in ('避難所利用者', '地域住民', '高齢者の方') else '',
                 'danger': draft.get('danger', ''),
                 'urgency': draft.get('urgency', ''),
                 'template': draft.get('template', ''),
@@ -455,6 +471,13 @@ def board():
             }
         else:
             form_data = {'error': '編集できる下書きが見つかりません。'}
+    if details_id:
+        details_entry = next(
+            (instruction for instruction in instructions
+             if str(instruction.get('id')) == details_id
+             and instruction.get('status') != '下書き'),
+            None
+        )
 
     return render_template(
         'board.html',
@@ -463,7 +486,8 @@ def board():
         current_page=current_page,
         total_pages=total_pages,
         form_data=form_data,
-        success_message=success_message
+        success_message=success_message,
+        details_entry=details_entry
     )
 
 # 検索結果ページ：templates/search_results.html を返す

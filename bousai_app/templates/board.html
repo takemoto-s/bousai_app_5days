@@ -82,10 +82,18 @@
   .choice-row label { display: inline-flex; align-items: center; gap: 5px; margin: 0; padding: 5px 8px; border: 1px solid transparent; border-radius: 5px; font-weight: 700; }
   .choice-row label:has(input:checked) { background: #f2f6fc; border-color: #c7d8ef; }
   .choice-row input { accent-color: #f0a324; }
-  .choice-row label:has(input[value="高"]) { color: #d34a45; }
-  .choice-row label:has(input[value="中"]) { color: #b87808; }
-  .choice-row label:has(input[value="低"]) { color: #23834e; }
-  .choice-row label:has(input[value="緊急"]) { color: #c62e3d; }
+  .field-hint { margin-left: 7px; color: #718096; font-size: 11px; font-weight: 400; }
+  .danger-high, .urgency-emergency { color: #c52c3b; }
+  .danger-medium, .urgency-high { color: #b87808; }
+  .danger-low, .urgency-low { color: #23834e; }
+  .urgency-medium { color: #a86e00; }
+  .choice-row label:has(input[name="danger"][value="高"]:checked) { color: #fff; background: #c52c3b; border-color: #a92130; }
+  .choice-row label:has(input[name="danger"][value="中"]:checked) { color: #fff; background: #d88900; border-color: #b66f00; }
+  .choice-row label:has(input[name="danger"][value="低"]:checked) { color: #fff; background: #23834e; border-color: #17663a; }
+  .choice-row label:has(input[name="urgency"][value="緊急"]:checked) { color: #fff; background: #4b236f; border-color: #35164f; box-shadow: 0 0 0 2px #eadcf3; }
+  .choice-row label:has(input[name="urgency"][value="高"]:checked) { color: #fff; background: #c52c3b; border-color: #a92130; }
+  .choice-row label:has(input[name="urgency"][value="中"]:checked) { color: #fff; background: #d88900; border-color: #b66f00; }
+  .choice-row label:has(input[name="urgency"][value="低"]:checked) { color: #fff; background: #55718f; border-color: #3e5975; }
 
   .form-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px; }
   .form-button {
@@ -127,32 +135,44 @@
   .preview-content h4 { margin: 0 0 12px; color: #26384e; font-size: 15px; }
   .preview-content p { margin: 0; min-height: 96px; color: #47566a; font-size: 12px; line-height: 1.8; white-space: pre-wrap; }
   .preview-tags { display: flex; gap: 8px; margin-top: 12px; font-size: 11px; font-weight: 700; flex-wrap: wrap; }
-  .preview-tag { padding: 4px 10px; background: #fff4dc; border: 1px solid #ffc667; border-radius: 4px; }
-  .preview-tag.urgency { color: #c62e3d; background: #fff0f1; border-color: #ffb6bd; }
+  .preview-tag { padding: 4px 10px; background: #f5f7fa; border: 1px solid #d8e0eb; border-radius: 4px; }
+  .preview-tag.level-high { color: #cf4545; background: #fff0f0; border-color: #ffaaa9; }
+  .preview-tag.level-medium { color: #a86e00; background: #fff7df; border-color: #ffd276; }
+  .preview-tag.level-low { color: #21864d; background: #ebf8ef; border-color: #a8ddb9; }
+  .preview-tag.level-urgent { color: #c52c3b; background: #ffeaec; border-color: #ff9ca6; }
   .preview-note { margin: 14px 0 0; padding: 9px; color: #4274bc; background: #eaf2ff; border-radius: 5px; font-size: 11px; }
 
   .history-panel { padding: 18px 10px 12px; }
   .history-panel .panel-title { padding: 0 10px; margin-bottom: 14px; }
   .history-wrap { overflow-x: auto; }
-  .history-table { width: 100%; min-width: 900px; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
-  .history-table col.date { width: 132px; }
-  .history-table col.region { width: 130px; }
-  .history-table col.target { width: 112px; }
-  .history-table col.level { width: 76px; }
+  .history-table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
+  .history-table col.date { width: 126px; }
+  .history-table col.region { width: 104px; }
+  .history-table col.target { width: 98px; }
+  .history-table col.level { width: 62px; }
   .history-table col.content { width: auto; }
-  .history-table col.status { width: 104px; }
+  .history-table col.status { width: 92px; }
+  .history-table col.operation { width: 72px; }
   .history-table th { padding: 10px 9px; color: #41536b; background: #f1f3f7; text-align: left; white-space: nowrap; }
-  .history-table td { padding: 9px; border-bottom: 1px solid #e9edf2; vertical-align: middle; }
+  .history-table td { padding: 9px 7px; border-bottom: 1px solid #e9edf2; vertical-align: middle; }
   .history-table tbody tr:hover { background: #fafcff; }
   .history-table .content-cell { overflow-wrap: anywhere; line-height: 1.55; }
   .level-badge { display: inline-block; min-width: 38px; padding: 3px 7px; border: 1px solid; border-radius: 4px; text-align: center; font-weight: 700; }
   .level-high { color: #cf4545; background: #fff0f0; border-color: #ffaaa9; }
   .level-medium { color: #a86e00; background: #fff7df; border-color: #ffd276; }
   .level-low { color: #21864d; background: #ebf8ef; border-color: #a8ddb9; }
-  .level-urgent { color: #c52c3b; background: #ffeaec; border-color: #ff9ca6; }
+  .level-urgent { color: #4b236f; background: #f0e5f7; border-color: #c9a9dc; }
   .status { display: inline-block; padding: 4px 9px; color: #168b46; background: #e5f7eb; border: 1px solid #a9ddb9; border-radius: 12px; white-space: nowrap; font-weight: 700; }
   .status-draft { color: #936100; background: #fff5dc; border-color: #f1ce7e; }
-  .edit-button { display: inline-block; margin-left: 6px; padding: 3px 8px; color: #245ca8; background: #fff; border: 1px solid #9dbce5; border-radius: 4px; font-size: 11px; font-weight: 700; text-decoration: none; }
+  .operation-button { display: inline-block; padding: 4px 8px; color: #245ca8; background: #fff; border: 1px solid #9dbce5; border-radius: 4px; font-size: 11px; font-weight: 700; text-decoration: none; }
+  .operation-button:hover { background: #eef5ff; }
+  .details-modal { position: fixed; inset: 0; z-index: 1100; display: grid; place-items: center; padding: 20px; background: rgba(28, 55, 91, 0.42); }
+  .details-dialog { width: min(100%, 560px); max-height: 90vh; overflow-y: auto; padding: 24px; background: #fff; border: 1px solid #dbe5f2; border-radius: 8px; box-shadow: 0 12px 30px rgba(25, 52, 92, 0.24); }
+  .details-dialog h3 { margin: 0 0 18px; color: #24559f; font-size: 18px; }
+  .details-list { display: grid; grid-template-columns: 100px 1fr; gap: 10px 14px; margin: 0; font-size: 13px; }
+  .details-list dt { color: #64748a; font-weight: 700; }
+  .details-list dd { margin: 0; color: #293b52; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .details-close { display: inline-block; margin-top: 20px; padding: 8px 16px; color: #245ca8; border: 1px solid #9dbce5; border-radius: 5px; text-decoration: none; font-size: 12px; font-weight: 700; }
   .edit-button:hover { background: #eef5ff; }
   .pagination { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 16px; }
   .pagination a, .pagination span { display: inline-flex; align-items: center; justify-content: center; min-width: 31px; height: 31px; padding: 0 8px; color: #245ca8; border: 1px solid #cbd8e9; border-radius: 5px; font-size: 12px; font-weight: 700; text-decoration: none; }
@@ -192,23 +212,25 @@
         <div class="form-grid">
           <div class="field">
             <label for="region">地域を選択</label>
-            <select id="region" name="region"><option value="青森市 全域" {% if form_data.region == '青森市 全域' or not form_data.region %}selected{% endif %}>青森市 全域</option><option value="青森市 浪岡地区" {% if form_data.region == '青森市 浪岡地区' %}selected{% endif %}>青森市 浪岡地区</option><option value="青森市 油川地区" {% if form_data.region == '青森市 油川地区' %}selected{% endif %}>青森市 油川地区</option></select>
+            <select id="region" name="region_choice"><option value="青森市 全域" {% if form_data.region_choice == '青森市 全域' or (not form_data.region_choice and (form_data.region == '青森市 全域' or not form_data.region)) %}selected{% endif %}>青森市 全域</option><option value="青森市 浪岡地区" {% if form_data.region_choice == '青森市 浪岡地区' or (not form_data.region_choice and form_data.region == '青森市 浪岡地区') %}selected{% endif %}>青森市 浪岡地区</option><option value="青森市 油川地区" {% if form_data.region_choice == '青森市 油川地区' or (not form_data.region_choice and form_data.region == '青森市 油川地区') %}selected{% endif %}>青森市 油川地区</option><option value="その他" {% if form_data.region_choice == 'その他' %}selected{% endif %}>その他</option></select>
+            <input id="regionCustom" name="region_custom" type="text" value="{{ form_data.region_custom or '' }}" placeholder="地域を入力してください" {% if form_data.region_choice != 'その他' %}hidden{% endif %}>
           </div>
           <div class="field">
             <label for="audience">対象者を選択</label>
-            <select id="audience" name="target"><option value="避難所利用者" {% if form_data.target == '避難所利用者' or not form_data.target %}selected{% endif %}>避難所利用者</option><option value="地域住民" {% if form_data.target == '地域住民' %}selected{% endif %}>地域住民</option><option value="高齢者の方" {% if form_data.target == '高齢者の方' %}selected{% endif %}>高齢者の方</option></select>
+            <select id="audience" name="target_choice"><option value="避難所利用者" {% if form_data.target_choice == '避難所利用者' or (not form_data.target_choice and (form_data.target == '避難所利用者' or not form_data.target)) %}selected{% endif %}>避難所利用者</option><option value="地域住民" {% if form_data.target_choice == '地域住民' or (not form_data.target_choice and form_data.target == '地域住民') %}selected{% endif %}>地域住民</option><option value="高齢者の方" {% if form_data.target_choice == '高齢者の方' or (not form_data.target_choice and form_data.target == '高齢者の方') %}selected{% endif %}>高齢者の方</option><option value="その他" {% if form_data.target_choice == 'その他' %}selected{% endif %}>その他</option></select>
+            <input id="targetCustom" name="target_custom" type="text" value="{{ form_data.target_custom or '' }}" placeholder="対象者を入力してください" {% if form_data.target_choice != 'その他' %}hidden{% endif %}>
           </div>
           <div class="field">
-            <label>危険度</label>
-            <div class="choice-row"><label><input type="radio" name="danger" value="高" {% if form_data.danger == '高' %}checked{% endif %}> 高</label><label><input type="radio" name="danger" value="中" {% if form_data.danger == '中' or not form_data.danger %}checked{% endif %}> 中</label><label><input type="radio" name="danger" value="低" {% if form_data.danger == '低' %}checked{% endif %}> 低</label></div>
+            <label>危険度 <span class="field-hint">災害の危険性</span></label>
+            <div class="choice-row"><label class="danger-high"><input type="radio" name="danger" value="高" {% if form_data.danger == '高' %}checked{% endif %}> 高</label><label class="danger-medium"><input type="radio" name="danger" value="中" {% if form_data.danger == '中' or not form_data.danger %}checked{% endif %}> 中</label><label class="danger-low"><input type="radio" name="danger" value="低" {% if form_data.danger == '低' %}checked{% endif %}> 低</label></div>
           </div>
           <div class="field">
-            <label>緊急度</label>
-            <div class="choice-row"><label><input type="radio" name="urgency" value="緊急" {% if form_data.urgency == '緊急' %}checked{% endif %}> 緊急</label><label><input type="radio" name="urgency" value="高" {% if form_data.urgency == '高' or not form_data.urgency %}checked{% endif %}> 高</label><label><input type="radio" name="urgency" value="中" {% if form_data.urgency == '中' %}checked{% endif %}> 中</label><label><input type="radio" name="urgency" value="低" {% if form_data.urgency == '低' %}checked{% endif %}> 低</label></div>
+            <label>緊急度 <span class="field-hint">情報を伝える優先度</span></label>
+            <div class="choice-row"><label class="urgency-emergency"><input type="radio" name="urgency" value="緊急" {% if form_data.urgency == '緊急' %}checked{% endif %}> 緊急</label><label class="urgency-high"><input type="radio" name="urgency" value="高" {% if form_data.urgency == '高' or not form_data.urgency %}checked{% endif %}> 高</label><label class="urgency-medium"><input type="radio" name="urgency" value="中" {% if form_data.urgency == '中' %}checked{% endif %}> 中</label><label class="urgency-low"><input type="radio" name="urgency" value="低" {% if form_data.urgency == '低' %}checked{% endif %}> 低</label></div>
           </div>
           <div class="field field-wide">
             <label for="template">定型文を選択</label>
-            <select id="template">
+            <select id="template" name="template">
               <option value="">定型文を選択してください</option>
               <option value="evacuation" {% if form_data.template == 'evacuation' %}selected{% endif %}>避難指示</option>
               <option value="rain-flood" {% if form_data.template == 'rain-flood' %}selected{% endif %}>大雨・洪水</option>
@@ -232,7 +254,7 @@
       <div class="preview-box">
         <div class="preview-alert">⚠ 重要なお知らせ</div>
         <div class="preview-meta"><span>⌖ <span id="previewRegion">青森市 全域</span></span><span>発信日時：現在</span></div>
-        <div class="preview-content"><h4 id="previewHeading">【お知らせ】</h4><p id="previewBody">発信内容を入力すると、ここにプレビューが表示されます。</p><div class="preview-tags"><span class="preview-tag">対象者　<span id="previewAudience">避難所利用者</span></span><span class="preview-tag">危険度　<span id="previewDanger">中</span></span><span class="preview-tag urgency">緊急度　<span id="previewUrgency">高</span></span></div></div>
+        <div class="preview-content"><h4 id="previewHeading">【お知らせ】</h4><p id="previewBody">発信内容を入力すると、ここにプレビューが表示されます。</p><div class="preview-tags"><span class="preview-tag">対象者　<span id="previewAudience">避難所利用者</span></span><span id="previewDangerTag" class="preview-tag level-medium">危険度　<span id="previewDanger">中</span></span><span id="previewUrgencyTag" class="preview-tag level-high">緊急度　<span id="previewUrgency">高</span></span></div></div>
         <p class="preview-note">ⓘ この内容は住民の方へ上記の形式で表示されます。</p>
       </div>
     </section>
@@ -248,11 +270,27 @@
     </nav>
     {% endif %}
     {% if history_entries %}
-    <div class="history-wrap"><table class="history-table"><colgroup><col class="date"><col class="region"><col class="target"><col class="level"><col class="level"><col class="content"><col class="status"></colgroup><thead><tr><th>日時</th><th>地域</th><th>対象者</th><th>危険度</th><th>緊急度</th><th>内容</th><th>状態</th></tr></thead><tbody>
-      {% for inst in history_entries %}<tr><td>{{ inst.created_at or inst.updated_at or '日時未設定' }}</td><td>{{ inst.region or '青森市 全域' }}</td><td>{{ inst.target or '未設定' }}</td><td><span class="level-badge {% if inst.danger == '高' %}level-high{% elif inst.danger == '低' %}level-low{% else %}level-medium{% endif %}">{{ inst.danger or '未設定' }}</span></td><td><span class="level-badge {% if inst.urgency == '緊急' %}level-urgent{% elif inst.urgency == '高' %}level-high{% elif inst.urgency == '低' %}level-low{% else %}level-medium{% endif %}">{{ inst.urgency or '未設定' }}</span></td><td class="content-cell" title="{{ inst.content }}">{{ inst.content }}{% if inst.shelter %}（避難先: {{ inst.shelter }}）{% endif %}</td><td><span class="status {% if inst.status == '下書き' %}status-draft{% endif %}">● {{ inst.status or '発信済み' }}</span>{% if inst.status == '下書き' %}<a class="edit-button" href="{{ url_for('board', edit_id=inst.id) }}">編集</a>{% endif %}</td></tr>{% endfor %}
+    <div class="history-wrap"><table class="history-table"><colgroup><col class="date"><col class="region"><col class="target"><col class="level"><col class="level"><col class="content"><col class="status"><col class="operation"></colgroup><thead><tr><th>日時</th><th>地域</th><th>対象者</th><th>危険度</th><th>緊急度</th><th>内容</th><th>状態</th><th>操作</th></tr></thead><tbody>
+      {% for inst in history_entries %}<tr><td>{{ inst.created_at or inst.updated_at or '日時未設定' }}</td><td>{{ inst.region or '青森市 全域' }}</td><td>{{ inst.target or '未設定' }}</td><td><span class="level-badge {% if inst.danger == '高' %}level-high{% elif inst.danger == '低' %}level-low{% else %}level-medium{% endif %}">{{ inst.danger or '未設定' }}</span></td><td><span class="level-badge {% if inst.urgency == '緊急' %}level-urgent{% elif inst.urgency == '高' %}level-high{% elif inst.urgency == '低' %}level-low{% else %}level-medium{% endif %}">{{ inst.urgency or '未設定' }}</span></td><td class="content-cell" title="{{ inst.content }}">{{ inst.content }}{% if inst.shelter %}（避難先: {{ inst.shelter }}）{% endif %}</td><td><span class="status {% if inst.status == '下書き' %}status-draft{% endif %}">● {% if inst.status == '下書き' %}下書き{% else %}発信済み{% endif %}</span></td><td>{% if inst.status == '下書き' %}<a class="operation-button" href="{{ url_for('board', edit_id=inst.id) }}">編集</a>{% else %}<a class="operation-button" href="{{ url_for('board', details_id=inst.id, page=current_page) }}">詳細</a>{% endif %}</td></tr>{% endfor %}
     </tbody></table></div>
     {% else %}<p class="empty-history">登録されている発信履歴はありません。</p>{% endif %}
   </section>
+  {% if details_entry %}
+  <div class="details-modal" role="presentation">
+    <section class="details-dialog" role="dialog" aria-modal="true" aria-labelledby="details-title">
+      <h3 id="details-title">発信内容の詳細</h3>
+      <dl class="details-list">
+        <dt>発信日時</dt><dd>{{ details_entry.created_at or details_entry.updated_at or '日時未設定' }}</dd>
+        <dt>地域</dt><dd>{{ details_entry.region or '青森市 全域' }}</dd>
+        <dt>対象者</dt><dd>{{ details_entry.target or '未設定' }}</dd>
+        <dt>危険度</dt><dd><span class="level-badge {% if details_entry.danger == '高' %}level-high{% elif details_entry.danger == '低' %}level-low{% else %}level-medium{% endif %}">{{ details_entry.danger or '未設定' }}</span></dd>
+        <dt>緊急度</dt><dd><span class="level-badge {% if details_entry.urgency == '緊急' %}level-urgent{% elif details_entry.urgency == '高' %}level-high{% elif details_entry.urgency == '低' %}level-low{% else %}level-medium{% endif %}">{{ details_entry.urgency or '未設定' }}</span></dd>
+        <dt>発信内容</dt><dd>{{ details_entry.content or '内容未設定' }}</dd>
+      </dl>
+      <a class="details-close" href="{{ url_for('board', page=current_page) }}">閉じる</a>
+    </section>
+  </div>
+  {% endif %}
 </div>
 
 <script>
@@ -260,11 +298,15 @@
   const templateField = document.getElementById('template');
   const contentField = document.getElementById('content');
   const regionField = document.getElementById('region');
+  const regionCustomField = document.getElementById('regionCustom');
+  const audienceCustomField = document.getElementById('targetCustom');
   const previewBody = document.getElementById('previewBody');
   const previewRegion = document.getElementById('previewRegion');
   const previewAudience = document.getElementById('previewAudience');
   const previewDanger = document.getElementById('previewDanger');
   const previewUrgency = document.getElementById('previewUrgency');
+  const previewDangerTag = document.getElementById('previewDangerTag');
+  const previewUrgencyTag = document.getElementById('previewUrgencyTag');
   const values = { 高: '高', 中: '中', 低: '低', 緊急: '緊急' };
   const templateExamples = {
     evacuation: '【避難指示】\n青森市内の対象地域では、危険な場所から直ちに避難してください。\n避難の際は周囲の状況に注意し、安全な経路で行動してください。',
@@ -273,24 +315,57 @@
     'shelter-open': '【避難所開設】\n青森市内に避難所を開設しました。\n避難する際は必要なものを持参し、周囲の状況に注意してお越しください。',
     'shelter-crowded': '【避難所混雑】\n青森市内の避難所が混雑しています。\n可能な場合は別の避難所もご検討いただき、係員の案内に従ってください。'
   };
+  const templateDefaults = {
+    evacuation: { danger: '高', urgency: '緊急' },
+    'rain-flood': { danger: '高', urgency: '高' },
+    landslide: { danger: '高', urgency: '緊急' },
+    'shelter-open': { danger: '低', urgency: '中' },
+    'shelter-crowded': { danger: '中', urgency: '高' }
+  };
+
+  function setLevelClass(element, level, prefix) {
+    element.classList.remove('level-high', 'level-medium', 'level-low', 'level-urgent');
+    const className = prefix === 'urgency' && level === '緊急' ? 'level-urgent' : `level-${level === '高' ? 'high' : level === '低' ? 'low' : 'medium'}`;
+    element.classList.add(className);
+  }
 
   function updatePreview() {
     previewBody.textContent = contentField.value || '発信内容を入力すると、ここにプレビューが表示されます。';
-    previewRegion.textContent = regionField.value;
-    previewAudience.textContent = document.getElementById('audience').value;
-    previewDanger.textContent = values[document.querySelector('input[name="danger"]:checked').value];
-    previewUrgency.textContent = values[document.querySelector('input[name="urgency"]:checked').value];
+    previewRegion.textContent = regionField.value === 'その他' ? regionCustomField.value : regionField.value;
+    const audienceField = document.getElementById('audience');
+    previewAudience.textContent = audienceField.value === 'その他' ? audienceCustomField.value : audienceField.value;
+    const danger = document.querySelector('input[name="danger"]:checked').value;
+    const urgency = document.querySelector('input[name="urgency"]:checked').value;
+    previewDanger.textContent = values[danger];
+    previewUrgency.textContent = values[urgency];
+    setLevelClass(previewDangerTag, danger, 'danger');
+    setLevelClass(previewUrgencyTag, urgency, 'urgency');
+  }
+
+  function updateCustomFieldVisibility() {
+    regionCustomField.hidden = regionField.value !== 'その他';
+    audienceCustomField.hidden = document.getElementById('audience').value !== 'その他';
+    updatePreview();
   }
 
   contentField.addEventListener('input', updatePreview);
   regionField.addEventListener('change', updatePreview);
-  document.getElementById('audience').addEventListener('change', updatePreview);
+  regionField.addEventListener('change', updateCustomFieldVisibility);
+  regionCustomField.addEventListener('input', updatePreview);
+  document.getElementById('audience').addEventListener('change', updateCustomFieldVisibility);
+  audienceCustomField.addEventListener('input', updatePreview);
   document.querySelectorAll('input[type="radio"]').forEach((radio) => radio.addEventListener('change', updatePreview));
   templateField.addEventListener('change', () => {
     contentField.value = templateExamples[templateField.value] || '';
+    const defaults = templateDefaults[templateField.value];
+    if (defaults) {
+      document.querySelector(`input[name="danger"][value="${defaults.danger}"]`).checked = true;
+      document.querySelector(`input[name="urgency"][value="${defaults.urgency}"]`).checked = true;
+    }
     contentField.focus();
     updatePreview();
   });
   updatePreview();
+  updateCustomFieldVisibility();
 </script>
 {% endblock %}
